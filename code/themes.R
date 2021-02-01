@@ -1,0 +1,21 @@
+ggp_theme_default <- theme(
+    panel.background=element_rect(fill="white"),
+    panel.grid.major=element_line(color="white"),
+    panel.grid.minor=element_line(color="white"),
+    plot.background=element_rect(fill="white"),
+    plot.margin=margin(t=1, r=1, b=1, l=1, unit="lines"),
+    plot.title=element_text(size=12, face="plain", hjust=0.5),
+    plot.subtitle=element_text(size=10, face="plain", hjust=0.5),
+    axis.title.x=element_text(size=10, face="plain"),
+    axis.title.y=element_text(size=10, face="plain"),
+    axis.text.x=element_text(size=10, face="plain"),
+    axis.text.y=element_text(size=9, face="plain"),
+    axis.line.x.bottom=element_line(),
+    axis.line.y.left=element_line(),
+    legend.key=element_rect(fill="white"),
+    legend.position="top",
+    legend.title=element_blank(),
+    legend.text=element_text(size=10),
+    strip.background=element_rect(fill="black"),
+    strip.text=element_text(colour="white")
+)
