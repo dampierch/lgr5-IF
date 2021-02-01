@@ -3,7 +3,7 @@
 ##
 
 
-library(readxl)
+library(readr)
 library(dplyr)
 library(geepack)
 library(ggplot2)
@@ -37,14 +37,15 @@ main <- function() {
     ## Main Analysis: Comparison of LGR5+ Cells in Healthy vs FAP Crypts
 
     l <- make_data()
-    
-    version <- "v3_1"
+
+    version <- "v4_1"
     dat <- l$data
     sum <- l$summary
+
     compare_counts(dat, sum, version)
     pval <- "==7.9e-05"
     compare_counts(dat, sum, version, pval=pval)
-    
+
     version <- "v3_2"
     dat <- subset(dat, Subject_ID1 != "F4")
     sum <- subset(sum, Subject_ID1 != "F4")

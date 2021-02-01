@@ -1,20 +1,40 @@
-gee_analysis <- function(data, sum, version, pval=NULL) {
+fit_model <- function(data) {
     ## statistical test with gee model
-    fit <- geepack::geeglm(
-        LGR5_Count ~ factor(Phenotype) + as.numeric(Age),
+    levels <- c("Healthy", "Lynch", "FAP")
+    fit1 <- geepack::geeglm(
+        LGR5_Count ~ factor(Diagnosis, levels=levels),
         family=gaussian(),
-        data=data, id=factor(Subject_ID1),
+        data=data, id=factor(Subject_ID),
+        zcor=NULL, corstr="exchangeable", std.err="san.se"
+    )
+    fit2 <- geepack::geeglm(
+        LGR5_Count ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
+        family=gaussian(),
+        data=data, id=factor(Subject_ID),
         zcor=NULL, corstr="exchangeable", std.err="san.se"
     )
     cat("version:", version, "\n")
-    print(summary(fit))
+    print(summary(fit1))
+    print(summary(fit2))
+    return(fit2)
+}
+
+
+check_residuals <- function(fit) {
     ## check model residuals
-    fp <- "~/projects/fap-lgr5/"
-    fn <- paste0("fap_lgr5_gee_fit_", version, ".pdf")
-    pdf(file=paste0(fp, fn))
+    res_dir <- "~/projects/fap-lgr5/res/"
+    target <- paste0(res_dir, "gee_fit_", version, ".pdf")
+    pdf(file=target, width=5, height=5)
     plot(fit, which=1)
     dev.off()
-    cat("plot saved to", paste0(fp, fn), "\n")
+    cat("plot saved to", target, "\n")
+}
+
+
+gee_analysis <- function(data, sum, version, pval=NULL) {
+    fit <- fit_model(data)
+    check_residuals(fit)
+
     ## annotate plots with p-value from GEE
     if (!is.null(pval)) {
         ggp <- make_ggp_dot(sum, version)
