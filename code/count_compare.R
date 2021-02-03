@@ -7,6 +7,8 @@ library(readr)
 library(dplyr)
 library(geepack)
 library(ggplot2)
+library(cowplot)
+library(scales) ## for muted colors
 
 
 source("util.R")
@@ -34,9 +36,18 @@ compare_counts <- function(dat, sum, version, pval=NULL) {
 
 main <- function() {
 
-    ## Main Analysis: Comparison of LGR5+ Cells in Healthy vs FAP Crypts
+    ## Main Analysis: Comparison of LGR5+ Cells in Healthy, Lynch, and FAP Crypts
 
+    ## load data
     l <- make_data()
+
+    ## check inter-observer variability
+    pl <- interobserver_plots(l)
+    interobs_write(pl, "LGR5")
+    interobs_write(pl, "Ectopic")
+
+    ## compare counts
+
 
     version <- "v4_1"
     dat <- l$data

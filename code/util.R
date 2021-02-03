@@ -35,20 +35,21 @@ sum_df <- function(df) {
 make_data <- function() {
     data <- read_inputs()
     dfs <- list()
-    dfs$full <- merge(data$crypts, data$subjects, by="Subject_ID")
     fnames <- c("Crypt_ID", "Slide_Number")
-    dfs$full <- merge(dfs$full, data$counts_chd, by=fnames)
     snames <- c("_A", "_B")
+    dfs$full <- merge(data$crypts, data$subjects, by="Subject_ID")
+    dfs$full <- merge(dfs$full, data$counts_chd, by=fnames)
     dfs$full <- merge(dfs$full, data$counts_sjp, by=fnames, suffixes=snames)
     #dfs$full <- merge(dfs$full, data$counts_ltj, by=fnames)
     i <- !is.na(dfs$full$LGR5_Count_A) & !is.na(dfs$full$LGR5_Count_B)
-    dfs$lgr5_ttl <- dfs$full[i, ]
+    dfs$lgr5 <- dfs$full[i, ]
     i <- !is.na(dfs$full$Ectopic_Count_A) & !is.na(dfs$full$Ectopic_Count_B)
-    dfs$lgr5_ect <- dfs$full[i, ]
-
-    dfs$lgr5_ttl$LGR5_Count <- (dfs$lgr5_ttl$LGR5_Count_A + dfs$lgr5_ttl$LGR5_Count_B) / 2
-
-    dfs$sum_ttl <- sum_df(dfs$lgr5_ttl)
-    dfs$sum_ect <- sum_df(dfs$lgr5_ect)
+    dfs$ecto <- dfs$full[i, ]
+    dfs$lgr5$LGR5_Count <- (dfs$lgr5$LGR5_Count_A + dfs$lgr5$LGR5_Count_B) / 2
+    dfs$lgr5$Ectopic_Count <- (dfs$lgr5$Ectopic_Count_A + dfs$lgr5$Ectopic_Count_B) / 2
+    dfs$ecto$LGR5_Count <- (dfs$ecto$LGR5_Count_A + dfs$ecto$LGR5_Count_B) / 2
+    dfs$ecto$Ectopic_Count <- (dfs$ecto$Ectopic_Count_A + dfs$ecto$Ectopic_Count_B) / 2
+    dfs$sumttl <- sum_df(dfs$lgr5)
+    dfs$sumect <- sum_df(dfs$ecto)
     return(dfs)
 }
