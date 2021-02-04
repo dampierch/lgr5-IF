@@ -36,17 +36,37 @@ compare_counts <- function(dat, sum, version, pval=NULL) {
 
 main <- function() {
 
-    ## Main Analysis: Comparison of LGR5+ Cells in Healthy, Lynch, and FAP Crypts
+    ## Main Analysis: Comparison of LGR5+ Cells in Healthy, Lynch, FAP Crypts
 
-    ## load data
+    ## Load Data
     l <- make_data()
 
-    ## check inter-observer variability
+    ## Check Inter-Observer Variability
     pl <- interobserver_plots(l)
     interobs_write(pl, "LGR5")
     interobs_write(pl, "Ectopic")
 
-    ## compare counts
+    ## Test Predictors of LGR5+ Cell Number
+    fits <- list()
+    ## Predictor: Side, Group: Healthy
+    fits$side <- fit_gee_side(l$lgr5, "LGR5")
+    ## Predictor: Age, Group: Healthy
+    fits$age <- fit_gee_age(l$lgr5, "LGR5")
+    ## Predictor: Diagnosis, Group: All
+    fits$diagttl <- fit_gee_diagnosis(l$lgr5, "LGR5")
+    fits$diagect <- fit_gee_diagnosis(l$ecto, "Ectopic")
+    ## Predictor: Diagnosis and Age, Group: All
+    fits$diagagettl <- fit_gee_diag_age(l$lgr5, "LGR5")
+    fits$diagageect <- fit_gee_diag_age(l$ecto, "Ectopic")
+
+    ## Make Figures
+    ggps <- list()
+    ## Highlight Effect of Age
+    # fit <- fit_gee_age(l$lgr5, "LGR5", subset=c("Healthy", "Lynch"))
+    ggps$age <- make_ggp_age_predict(l$sumttl, fits$age)
+    ## Show Main Effect per Sample
+    ggps$X <- make_ggp_dot(l$sumttl)
+    ## Show Main Effect per Crypt
 
 
     version <- "v4_1"
@@ -63,6 +83,10 @@ main <- function() {
     compare_counts(dat, sum, version)
     pval <- "==5.3e-09"
     compare_counts(dat, sum, version, pval=pval)
+
+
+## compare age in healthy and lynch
+fit_model_age(df)
 
 }
 

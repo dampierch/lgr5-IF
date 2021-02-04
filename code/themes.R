@@ -19,3 +19,16 @@ ggp_theme_default <- theme(
     strip.background=element_rect(fill="black"),
     strip.text=element_text(colour="white")
 )
+
+
+ggp_theme_predict <- ggp_theme_default + theme(
+    plot.margin=margin(t=0.5, r=0.5, b=0.5, l=0.5, unit="lines"),
+    legend.position=c(0.8, 0.8),
+    legend.text=element_text(size=10),
+    legend.key=element_blank(),
+    legend.key.size=unit(0.5, "cm"),
+    legend.key.width=unit(0.5, "cm"),
+    legend.spacing.x=unit(0.001, "cm"),
+    legend.spacing.y=unit(0.001, "cm"),
+    legend.background=element_rect(fill="white", size=0.25, colour="grey")
+)

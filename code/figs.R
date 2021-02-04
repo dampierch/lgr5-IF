@@ -139,12 +139,31 @@ interobs_write <- function(pl, type) {
 }
 
 
+make_ggp_age_predict <- function(df, fit) {
+    ## figure works well as 3 in x 3 in
+    ages <- 10:90
+    dfpred <- data.frame(Ages=ages, LGR5pred=predict(fit, data.frame(Age=ages)))
+    levels <- c("Healthy", "Lynch", "FAP")
+    ggp <- ggplot(df, aes(
+            x=Age, y=LGR5_Mean, colour=factor(Diagnosis, levels=levels)
+        )) +
+        geom_point(size=2) +
+        geom_line(
+            color=muted("red"), data=dfpred, aes(x=Ages, y=LGR5pred), size=0.8
+        ) +
+        labs(y="LGR5+ Cell Count") +
+        scale_colour_grey(start=0.8, end=0.2) +
+        ggp_theme_predict
+    return(ggp)
+}
 
-make_ggp_dot <- function(data, version) {
-    ggp <- ggplot(data, aes(x=Diagnosis, y=LGR5_Mean)) +
+
+make_ggp_dot <- function(df) {
+    levels <- c("Healthy", "Lynch", "FAP")
+    ggp <- ggplot(df, aes(x=factor(Diagnosis, levels=levels), y=LGR5_Mean)) +
         geom_dotplot(
-            binaxis="y", stackdir="center", stackratio=1, dotsize=0.25,
-            binwidth=1, colour="grey", fill="grey"
+            binaxis="y", stackdir="center", stackratio=1, dotsize=0.75,
+            binwidth=0.5, colour="grey", fill="grey"
         ) +
         stat_summary(
             fun.data=mean_sdl, fun.args=list(mult=1),
@@ -156,16 +175,16 @@ make_ggp_dot <- function(data, version) {
             name="Count (mean)", breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
         ) +
         ggp_theme_default
-    fp <- "~/projects/fap-lgr5/"
-    fn <- paste0("fap_lgr5_count_dot_", version, ".pdf")
-    ggsave(paste0(fp, fn), ggp, device="pdf", height=3, width=2, unit="in")
-    cat("plot saved to", paste0(fp, fn), "\n")
+    res_dir <- "~/projects/fap-lgr5/res/"
+    target <- paste0(res_dir, "main_effect_dot.pdf")
+    ggsave(target, ggp, device="pdf", height=3, width=3, unit="in")
+    cat("plot saved to", target, "\n")
     return(ggp)
 }
 
 
-make_ggp_dot2 <- function(data, group, version) {
-    ## colour the Healthy or FAP dots
+make_ggp_dot_colour <- function(df, group) {
+    ## colour the Healthy, Lynch, FAP dots
     ggp <- ggplot(data, aes(x=Diagnosis, y=LGR5_Mean)) +
         geom_dotplot(
             aes(colour=ID, fill=ID),

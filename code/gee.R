@@ -1,22 +1,100 @@
-fit_model <- function(data) {
-    ## statistical test with gee model
-    levels <- c("Healthy", "Lynch", "FAP")
-    fit1 <- geepack::geeglm(
-        LGR5_Count ~ factor(Diagnosis, levels=levels),
-        family=gaussian(),
-        data=data, id=factor(Subject_ID),
-        zcor=NULL, corstr="exchangeable", std.err="san.se"
-    )
-    fit2 <- geepack::geeglm(
-        LGR5_Count ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
-        family=gaussian(),
-        data=data, id=factor(Subject_ID),
-        zcor=NULL, corstr="exchangeable", std.err="san.se"
-    )
-    cat("version:", version, "\n")
-    print(summary(fit1))
-    print(summary(fit2))
-    return(fit2)
+## source from count_compare.R
+
+
+## generic comment: GEE model requires clustered obs to be in adjacent rows
+## id: Data are assumed to be sorted so that observations on each cluster
+## appear as contiguous rows in data. If data is not sorted this way, the
+## function will not identify the clusters correctly.
+
+
+fit_gee_side <- function(df, type, subset=c("Healthy")) {
+    df <- subset(df, Diagnosis %in% subset)
+    df <- df[order(df$Subject_ID), ]
+    levels <- c("Right", "Left")
+    if (type == "LGR5") {
+        fit <- geepack::geeglm(
+            LGR5_Count ~ factor(Side, levels=levels),
+            family=gaussian(),
+            data=df, id=factor(Subject_ID),
+            zcor=NULL, corstr="exchangeable", std.err="san.se"
+        )
+    } else {
+        fit <- geepack::geeglm(
+            Ectopic_Count ~ factor(Side, levels=levels),
+            family=gaussian(),
+            data=df, id=factor(Subject_ID),
+            zcor=NULL, corstr="exchangeable", std.err="san.se"
+        )
+    }
+    return(fit)
+}
+
+
+fit_gee_age <- function(df, type, subset=c("Healthy")) {
+    df <- subset(df, Diagnosis %in% subset)
+    df <- df[order(df$Subject_ID), ]
+    if (type == "LGR5") {
+        fit <- geepack::geeglm(
+            LGR5_Count ~ as.numeric(Age),
+            family=gaussian(),
+            data=df, id=factor(Subject_ID),
+            zcor=NULL, corstr="exchangeable", std.err="san.se"
+        )
+    } else {
+        fit <- geepack::geeglm(
+            Ectopic_Count ~ as.numeric(Age),
+            family=gaussian(),
+            data=df, id=factor(Subject_ID),
+            zcor=NULL, corstr="exchangeable", std.err="san.se"
+        )
+    }
+    return(fit)
+}
+
+
+fit_gee_diagnosis <- function(df, type, subset=c("Healthy", "Lynch", "FAP")) {
+    df <- subset(df, Diagnosis %in% subset)
+    df <- df[order(df$Subject_ID), ]
+    levels <- subset
+    if (type == "LGR5") {
+        fit <- geepack::geeglm(
+            LGR5_Count ~ factor(Diagnosis, levels=levels),
+            family=gaussian(),
+            data=df, id=factor(Subject_ID),
+            zcor=NULL, corstr="exchangeable", std.err="san.se"
+        )
+    } else {
+        fit <- geepack::geeglm(
+            Ectopic_Count ~ factor(Diagnosis, levels=levels),
+            family=gaussian(),
+            data=df, id=factor(Subject_ID),
+            zcor=NULL, corstr="exchangeable", std.err="san.se"
+        )
+    }
+    return(fit)
+}
+
+
+fit_gee_diag_age <- function(df, type, subset=c("Healthy", "Lynch", "FAP")) {
+    df <- subset(df, Diagnosis %in% subset)
+    df <- df[order(df$Subject_ID), ]
+    levels <- subset
+    if (type == "LGR5") {
+        fit <- geepack::geeglm(
+            LGR5_Count ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
+            family=gaussian(),
+            data=df, id=factor(Subject_ID),
+            zcor=NULL, corstr="exchangeable", std.err="san.se"
+        )
+    } else {
+        fit <- geepack::geeglm(
+            Ectopic_Count ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
+            family=gaussian(),
+            data=df, id=factor(Subject_ID),
+            zcor=NULL, corstr="exchangeable", std.err="san.se"
+        )
+    }
+    return(fit)
 }
 
 
