@@ -3,7 +3,7 @@ ggp_theme_default <- theme(
     panel.grid.major=element_line(color="white"),
     panel.grid.minor=element_line(color="white"),
     plot.background=element_rect(fill="white"),
-    plot.margin=margin(t=1, r=1, b=1, l=1, unit="lines"),
+    plot.margin=margin(t=0.75, r=0.75, b=0.75, l=0.75, unit="lines"),
     plot.title=element_text(size=12, face="plain", hjust=0.5),
     plot.subtitle=element_text(size=10, face="plain", hjust=0.5),
     axis.title.x=element_text(size=10, face="plain"),

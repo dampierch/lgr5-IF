@@ -55,73 +55,31 @@ main <- function() {
     ## Predictor: Diagnosis, Group: All
     fits$diagttl <- fit_gee_diagnosis(l$lgr5, "LGR5")
     fits$diagect <- fit_gee_diagnosis(l$ecto, "Ectopic")
-    ## Predictor: Diagnosis and Age, Group: All
+    ## Predictor: Diagnosis and Age, Group: All, Healthy As Baseline
     fits$diagagettl <- fit_gee_diag_age(l$lgr5, "LGR5")
     fits$diagageect <- fit_gee_diag_age(l$ecto, "Ectopic")
+    ## Predictor: Diagnosis and Age, Group: All, Lynch As Baseline
+    ss <- c("Lynch", "Healthy", "FAP")
+    fits$diagagettllyn <- fit_gee_diag_age(l$lgr5, "LGR5", subset=ss)
+    ## Check Residuals
+    for (f in names(fits)) {
+        check_residuals(fits[[f]], f)
+    }
 
     ## Make Figures
     ggps <- list()
     ## Highlight Effect of Age
     # fit <- fit_gee_age(l$lgr5, "LGR5", subset=c("Healthy", "Lynch"))
     ggps$age <- make_ggp_age_predict(l$sumttl, fits$age)
-    ## Show Main Effect per Sample
-    ggps$X <- make_ggp_dot(l$sumttl)
+    ## Show Main Effect per Subject
+    ggps$mainsubj <- make_ggp_dot(l$sumttl)
     ## Show Main Effect per Crypt
-
-
-    version <- "v4_1"
-    dat <- l$data
-    sum <- l$summary
-
-    compare_counts(dat, sum, version)
-    pval <- "==7.9e-05"
-    compare_counts(dat, sum, version, pval=pval)
-
-    version <- "v3_2"
-    dat <- subset(dat, Subject_ID1 != "F4")
-    sum <- subset(sum, Subject_ID1 != "F4")
-    compare_counts(dat, sum, version)
-    pval <- "==5.3e-09"
-    compare_counts(dat, sum, version, pval=pval)
-
-
-## compare age in healthy and lynch
-fit_model_age(df)
+    ggps$maincryp <- make_ggp_point(l$lgr5)
+    ## Color Subjects
+    ## Color Crypts
+    ## Highlight Healthy Subjects
 
 }
 
 
-sub_side <- function() {
-
-    ## Sub-analysis: Comparison of Proximal vs Distal Healthy Crypts
-
-    l <- make_data()
-    dat <- l$data
-    dat1 <- subset(dat, Phenotype=="Healthy")
-    fit <- geepack::geeglm(
-        LGR5_Count ~ factor(Region),
-        family=gaussian(),
-        data=dat1, id=factor(Subject_ID1),
-        zcor=NULL, corstr="exchangeable", std.err="san.se"
-    )
-    summary(fit)
-
-}
-
-
-sub_age <- function() {
-
-    ## Sub-analysis: Comparison of Age vs Count in Healthy Crypts
-
-    l <- make_data()
-    dat <- l$data
-    dat1 <- subset(dat, Phenotype=="Healthy")
-    fit <- geepack::geeglm(
-        LGR5_Count ~ as.numeric(Age),
-        family=gaussian(),
-        data=dat1, id=factor(Subject_ID1),
-        zcor=NULL, corstr="exchangeable", std.err="san.se"
-    )
-    summary(fit)
-
-}
+#main()

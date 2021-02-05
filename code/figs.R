@@ -154,12 +154,19 @@ make_ggp_age_predict <- function(df, fit) {
         labs(y="LGR5+ Cell Count") +
         scale_colour_grey(start=0.8, end=0.2) +
         ggp_theme_predict
+    res_dir <- "~/projects/fap-lgr5/res/"
+    target <- paste0(res_dir, "age_predict.pdf")
+    ggsave(target, ggp, device="pdf", height=3, width=3, unit="in")
+    cat("plot saved to", target, "\n")
     return(ggp)
 }
 
 
 make_ggp_dot <- function(df) {
     levels <- c("Healthy", "Lynch", "FAP")
+    ymax <- 1.05 * max(df$LGR5_Mean)
+    dfseg1 <- data.frame(x1=1.1, x2=2.9, y=ymax)
+    dfseg2 <- data.frame(x1=2.1, x2=2.9, y=ymax - 0.5)
     ggp <- ggplot(df, aes(x=factor(Diagnosis, levels=levels), y=LGR5_Mean)) +
         geom_dotplot(
             binaxis="y", stackdir="center", stackratio=1, dotsize=0.75,
@@ -171,8 +178,13 @@ make_ggp_dot <- function(df) {
             size=0.8
         ) +
         labs(title="LGR5+ Cell Count", x=element_blank()) +
+        geom_segment(aes(x=x1, xend=x2, y=y, yend=y), data=dfseg1) +
+        geom_segment(aes(x=x1, xend=x2, y=y, yend=y), data=dfseg2) +
+        annotate("text", x=2, y=ymax + 0.1, label="*", size=5) +
+        annotate("text", x=2.5, y=ymax - 0.4, label="*", size=5) +
         scale_y_continuous(
-            name="Count (mean)", breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
+            name="Mean Count Per Subject",
+            breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
         ) +
         ggp_theme_default
     res_dir <- "~/projects/fap-lgr5/res/"
@@ -263,7 +275,37 @@ make_ggp_dot_colour <- function(df, group) {
 }
 
 
-make_ggp_point <- function(data, version) {
+make_ggp_point <- function(df) {
+    levels <- c("Healthy", "Lynch", "FAP")
+    ymax <- 1.05 * max(df$LGR5_Count)
+    dfseg1 <- data.frame(x1=1.1, x2=2.9, y=ymax)
+    dfseg2 <- data.frame(x1=2.1, x2=2.9, y=ymax - 0.5)
+    ggp <- ggplot(df, aes(x=factor(Diagnosis, levels=levels), y=LGR5_Count)) +
+        geom_boxplot(outlier.size=-1, width=0.5) +
+        geom_point(
+            size=1.25, shape=16, alpha=0.5, position=position_jitter(width=0.2)
+        ) +
+        labs(title="LGR5+ Cell Count", x=element_blank()) +
+        geom_segment(aes(x=x1, xend=x2, y=y, yend=y), data=dfseg1) +
+        geom_segment(aes(x=x1, xend=x2, y=y, yend=y), data=dfseg2) +
+        annotate("text", x=2, y=ymax + 0.1, label="*", size=5) +
+        annotate("text", x=2.5, y=ymax - 0.4, label="*", size=5) +
+        scale_y_continuous(
+            name="Count Per Crypt", breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
+        ) +
+        ggp_theme_default +
+        theme(
+            axis.text.x=element_text(size=10, face="plain", angle=45, hjust=1)
+        )
+    res_dir <- "~/projects/fap-lgr5/res/"
+    target <- paste0(res_dir, "main_effect_point.pdf")
+    ggsave(target, ggp, device="pdf", height=3, width=2, unit="in")
+    cat("plot saved to", target, "\n")
+    return(ggp)
+}
+
+
+make_ggp_point_colour <- function(df, group) {
     ## color the FAP samples
     data[data$Phenotype=="Healthy", "Label"] <- "H"
     data[data$Phenotype=="FAP", "Label"] <- data[data$Phenotype=="FAP", "Subject_ID1"]
@@ -297,7 +339,7 @@ make_ggp_point <- function(data, version) {
     return(ggp)
 }
 
-
+## any way to facet_wrap this?
 make_ggp_point_sub <- function(data, subject, version) {
     ## color individual Healthy samples (the high outliers)
     ggp <- ggplot(data, aes(x=Phenotype, y=LGR5_Count)) +
