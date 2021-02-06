@@ -322,88 +322,84 @@ make_ggp_point <- function(df) {
 
 
 make_ggp_point_colour <- function(df, group) {
-    ## color the FAP samples
-    data[data$Phenotype=="Healthy", "Label"] <- "H"
-    data[data$Phenotype=="FAP", "Label"] <- data[data$Phenotype=="FAP", "Subject_ID1"]
-    ggp <- ggplot(data, aes(x=Phenotype, y=LGR5_Count)) +
-        geom_boxplot(outlier.size=-1) +
+    ## color the Healthy, Lynch, FAP crypts
+    levels <- c("Healthy", "Lynch", "FAP")
+    i <- df$Diagnosis == group
+    df[i, "Label"] <- df[i, "Subject_ID"]
+    i <- df$Diagnosis != group
+    df[i, "Label"] <- "O"
+    ggp <- ggplot(df, aes(x=factor(Diagnosis, levels=levels), y=LGR5_Count)) +
+        geom_boxplot(outlier.size=-1, width=0.5) +
         geom_point(
-            aes(colour=Label), size=1, position=position_jitter(width=0.2)
+            aes(colour=Label), size=1, position=position_jitter(width=0.2),
+            alpha=0.75
         ) +
         labs(title="LGR5+ Cell Count", x=element_blank()) +
         scale_y_continuous(
-            name="Count", breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
+            name="Count Per Crypt", breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
         ) +
-        ggp_theme_default + theme(legend.position="right")
-    if (version == "v1") {
+        guides(colour=guide_legend(ncol=2)) +
+        ggp_theme_dotcolour
+    if (group == "Healthy") {
+        ggp <- ggp +
+            scale_colour_manual(
+                breaks=c("H1", "H2", "H3", "H4", "H5",
+                    "H6", "H7", "H8", "H9", "H10"),
+                values=c(scales::hue_pal()(10), "grey")
+            )
+    } else if (group == "Lynch") {
+        ggp <- ggp +
+            scale_colour_manual(
+                breaks=c("L1", "L2", "L3", "L4", "L5", "L6", "L7"),
+                values=c(scales::hue_pal()(7), "grey")
+            )
+    } else {
         ggp <- ggp +
             scale_colour_manual(
                 breaks=c("F1", "F2", "F3", "F4"),
                 values=c(scales::hue_pal()(4), "grey")
             )
-    } else if (version == "v2") {
-        ggp <- ggp +
-            scale_colour_manual(
-                breaks=c("F1", "F2", "F3"),
-                values=c(scales::hue_pal()(3), rep("grey", 10))
-            )
     }
-    fp <- "~/projects/fap-lgr5/"
-    fn <- paste0("fap_lgr5_count_point_", version, ".pdf")
-    ggsave(paste0(fp, fn), ggp, device="pdf", height=3.5, width=2.5, unit="in")
-    cat("plot saved to", paste0(fp, fn), "\n")
+    res_dir <- "~/projects/fap-lgr5/res/"
+    target <- paste0(res_dir, "subject_point_", substr(group, 1, 1), ".pdf")
+    ggsave(target, ggp, device="pdf", height=3, width=3.25, unit="in")
+    cat("plot saved to", target, "\n")
     return(ggp)
 }
 
-## any way to facet_wrap this?
-make_ggp_point_sub <- function(data, subject, version) {
-    ## color individual Healthy samples (the high outliers)
-    ggp <- ggplot(data, aes(x=Phenotype, y=LGR5_Count)) +
-        geom_boxplot(outlier.size=-1) +
+## fix border, change subject order
+make_ggp_point_sub <- function(df) {
+    ## highlight crypts from each subject individually
+    levels <- c("Healthy", "Lynch", "FAP")
+    keep <- c("Diagnosis", "LGR5_Count", "Subject_ID")
+    df <- df[ , keep]
+    dfs <- list()
+    for (s in unique(df$Subject_ID)) {
+        tmp <- df
+        tmp$sid <- s
+        tmp$lab <- NA
+        tmp[tmp$Subject_ID == s, "lab"] <- TRUE
+        dfs[[s]] <- tmp
+    }
+    df <- do.call(rbind, dfs)
+    ggp <- ggplot(df, aes(x=factor(Diagnosis, levels=levels), y=LGR5_Count)) +
+        geom_boxplot(outlier.size=-1, width=0.5) +
         geom_point(
-            data=subset(dat, Subject_ID1 != subject),
-            colour="grey", size=1, position=position_jitter(width=0.2)
+            aes(colour=lab), size=1, position=position_jitter(width=0.2),
+            alpha=0.75
         ) +
-        geom_point(
-            data=subset(dat, Subject_ID1 == subject),
-            colour="black", size=2, position=position_jitter(width=0.2)
-        ) +
-        labs(title=paste("LGR5+ Cells:", subject), x=element_blank()) +
-        scale_y_continuous(
-            name="Count", breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
-        ) +
-        ggp_theme_default
-    fp <- "~/projects/fap-lgr5/"
-    fn <- paste0("fap_lgr5_count_point_", subject, "_", version, ".pdf")
-    ggsave(paste0(fp, fn), ggp, device="pdf", height=3.5, width=1.75, unit="in")
-    cat("plot saved to", paste0(fp, fn), "\n")
-    return(ggp)
-}
-
-
-make_ggp_point2 <- function(data, version) {
-    ## color the Healthy samples
-    data[data$Phenotype=="Healthy", "Label"] <- data[data$Phenotype=="Healthy", "Subject_ID1"]
-    data[data$Phenotype=="FAP", "Label"] <- "FAP"
-    ggp <- ggplot(data, aes(x=Phenotype, y=LGR5_Count)) +
-        geom_boxplot(outlier.size=-1) +
-        geom_point(
-            aes(colour=Label), size=1, position=position_jitter(width=0.2)
-        ) +
-        labs(title="LGR5+ Cell Count", x=element_blank()) +
+        labs(title="LGR5+ Cells", x=element_blank()) +
         scale_y_continuous(
             name="Count", breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
         ) +
         scale_colour_manual(
-            breaks=c("H1", "H2", "H3", "H4", "H5",
-                "H6", "H7", "H8", "H9", "H10"),
-            values=c("grey", scales::hue_pal()(10))
+            values=c(muted("red"))
         ) +
-        guides(colour=guide_legend(ncol=2)) +
-        ggp_theme_default + theme(legend.position="right")
-    fp <- "~/projects/fap-lgr5/"
-    fn <- paste0("fap_lgr5_count_point2_", version, ".pdf")
-    ggsave(paste0(fp, fn), ggp, device="pdf", height=3.5, width=3.5, unit="in")
-    cat("plot saved to", paste0(fp, fn), "\n")
+        facet_wrap(vars(sid), nrow=6) +
+        ggp_theme_dotcolour + theme(legend.position="none")
+    res_dir <- "~/projects/fap-lgr5/res/"
+    target <- paste0(res_dir, "subject_point_facet.pdf")
+    ggsave(target, ggp, device="pdf", height=10, width=6, unit="in")
+    cat("plot saved to", target, "\n")
     return(ggp)
 }

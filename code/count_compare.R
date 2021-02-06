@@ -17,23 +17,6 @@ source("figs.R")
 source("gee.R")
 
 
-compare_counts <- function(dat, sum, version, pval=NULL) {
-    fit <- gee_analysis(dat, sum, version)
-    fit <- gee_analysis(dat, sum, version, pval=pval)
-    ggp <- make_ggp_point(dat, version)
-    ggp <- make_ggp_point2(dat, version)
-    s <- unlist(
-        unique(
-            subset(dat, Phenotype == "Healthy")[ , "Subject_ID1"]
-        ),
-        use.names=FALSE
-    )
-    for (each in s) {
-        ggp <- make_ggp_point_sub(dat, each, version)
-    }
-}
-
-
 main <- function() {
 
     ## Main Analysis: Comparison of LGR5+ Cells in Healthy, Lynch, FAP Crypts
@@ -81,8 +64,10 @@ main <- function() {
     ggps$colsubjfap <- make_ggp_dot_colour(l$sumttl, "FAP")
     ## Color Crypts
     ggps$colcryphlt <- make_ggp_point_colour(l$lgr5, "Healthy")
+    ggps$colcryplyn <- make_ggp_point_colour(l$lgr5, "Lynch")
+    ggps$colcrypfap <- make_ggp_point_colour(l$lgr5, "FAP")
     ## Highlight Healthy Subjects
-
+    ggps$facsubj <- make_ggp_point_sub(l$lgr5)
 }
 
 
