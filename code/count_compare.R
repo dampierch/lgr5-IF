@@ -76,7 +76,11 @@ main <- function() {
     ## Show Main Effect per Crypt
     ggps$maincryp <- make_ggp_point(l$lgr5)
     ## Color Subjects
+    ggps$colsubjhlt <- make_ggp_dot_colour(l$sumttl, "Healthy")
+    ggps$colsubjlyn <- make_ggp_dot_colour(l$sumttl, "Lynch")
+    ggps$colsubjfap <- make_ggp_dot_colour(l$sumttl, "FAP")
     ## Color Crypts
+    ggps$colcryphlt <- make_ggp_point_colour(l$lgr5, "Healthy")
     ## Highlight Healthy Subjects
 
 }

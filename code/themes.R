@@ -32,3 +32,12 @@ ggp_theme_predict <- ggp_theme_default + theme(
     legend.spacing.y=unit(0.001, "cm"),
     legend.background=element_rect(fill="white", size=0.25, colour="grey")
 )
+
+
+ggp_theme_dotcolour <- ggp_theme_default + theme(
+    plot.margin=margin(t=0.5, r=0.5, b=0.5, l=0.5, unit="lines"),
+    axis.text.x=element_text(size=10, face="plain", angle=45, hjust=1),
+    legend.position="right",
+    legend.spacing.x=unit(0.001, "cm"),
+    legend.spacing.y=unit(0.001, "cm")
+)

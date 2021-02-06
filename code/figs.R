@@ -195,14 +195,76 @@ make_ggp_dot <- function(df) {
 }
 
 
+make_dot_legend <- function(df, group, levels) {
+    ## colour the Healthy, Lynch, FAP dots
+    ## Subject_ID levels must come from data.frame sorted for dotplot by x and y
+    ggp <- ggplot(df, aes(x=Diagnosis, y=LGR5_Mean)) +
+        geom_dotplot(
+            aes(
+                colour=factor(Subject_ID, levels=levels),
+                fill=factor(Subject_ID, levels=levels)
+            ),
+            binaxis="y", binwidth=0.5, dotsize=0.75,
+            stackdir="center", stackratio=1
+        ) +
+        guides(colour=guide_legend(ncol=2)) +
+        ggp_theme_dotcolour
+    if (group == "Healthy") {
+        ggp <- ggp +
+            scale_colour_manual(
+                breaks=c("H1", "H2", "H3", "H4", "H5",
+                    "H6", "H7", "H8", "H9", "H10"),
+                values=c(scales::hue_pal()(10), rep("grey", 7), rep("grey", 4))
+            ) +
+            scale_fill_manual(
+                breaks=c("H1", "H2", "H3", "H4", "H5",
+                    "H6", "H7", "H8", "H9", "H10"),
+                values=c(scales::hue_pal()(10), rep("grey", 7), rep("grey", 4))
+            )
+    } else if (group == "Lynch") {
+        ggp <- ggp +
+            scale_colour_manual(
+                breaks=c("L1", "L2", "L3", "L4", "L5", "L6", "L7"),
+                values=c(rep("grey", 10), scales::hue_pal()(7), rep("grey", 4))
+            ) +
+            scale_fill_manual(
+                breaks=c("L1", "L2", "L3", "L4", "L5", "L6", "L7"),
+                values=c(rep("grey", 10), scales::hue_pal()(7), rep("grey", 4))
+            )
+    } else {
+        ggp <- ggp +
+            scale_colour_manual(
+                breaks=c("F1", "F2", "F3", "F4"),
+                values=c(rep("grey", 10), rep("grey", 7), scales::hue_pal()(4))
+            ) +
+            scale_fill_manual(
+                breaks=c("F1", "F2", "F3", "F4"),
+                values=c(rep("grey", 10), rep("grey", 7), scales::hue_pal()(4))
+            )
+    }
+    leg <- cowplot::get_legend(ggp)
+    return(leg)
+}
+
+
 make_ggp_dot_colour <- function(df, group) {
     ## colour the Healthy, Lynch, FAP dots
-    ggp <- ggplot(data, aes(x=Diagnosis, y=LGR5_Mean)) +
+    ## fill inside aes() disrupts position of dotplot
+    ## https://github.com/tidyverse/ggplot2/pull/1096#issuecomment-316443200
+    levels <- c("Healthy", "Lynch", "FAP")
+    df <- df[with(df, order(factor(Diagnosis, levels=levels), LGR5_Mean)), ]
+    if (group == "Healthy") {
+        df$colour <- c(scales::hue_pal()(10), rep("grey", 7), rep("grey", 4))
+    } else if (group == "Lynch") {
+        df$colour <- c(rep("grey", 10), scales::hue_pal()(7), rep("grey", 4))
+    } else {
+        df$colour <- c(rep("grey", 10), rep("grey", 7), scales::hue_pal()(4))
+    }
+    ggp <- ggplot(df, aes(x=factor(Diagnosis, levels=levels), y=LGR5_Mean)) +
         geom_dotplot(
-            aes(colour=ID, fill=ID),
-            binaxis="y", binwidth=1, binpositions="all",
-            stackdir="center", stackratio=1, stackgroups=TRUE,
-            dotsize=0.25
+            fill=df$colour, colour=df$colour,
+            binaxis="y", binwidth=0.5, dotsize=0.75,
+            stackdir="center", stackratio=1,
         ) +
         stat_summary(
             fun.data=mean_sdl, fun.args=list(mult=1),
@@ -211,67 +273,21 @@ make_ggp_dot_colour <- function(df, group) {
         ) +
         labs(title="LGR5+ Cell Count", x=element_blank()) +
         scale_y_continuous(
-            name="Count (mean)", breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
+            name="Mean Count Per Subject",
+            breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
         ) +
-        ggp_theme_default + theme(legend.position="right")
-    if (group == "Healthy") {
-        if (version == "v1") {
-            ggp <- ggp +
-                scale_colour_manual(
-                    breaks=c("H1", "H2", "H3", "H4", "H5",
-                        "H6", "H7", "H8", "H9", "H10"),
-                    values=c(rep("grey", 4), scales::hue_pal()(10))
-                ) +
-                scale_fill_manual(
-                    breaks=c("H1", "H2", "H3", "H4", "H5",
-                        "H6", "H7", "H8", "H9", "H10"),
-                    values=c(rep("grey", 4), scales::hue_pal()(10))
-                ) +
-                guides(colour=guide_legend(ncol=2))
-        } else if (version == "v2") {
-            ggp <- ggp +
-                scale_colour_manual(
-                    breaks=c("H1", "H2", "H3", "H4", "H5",
-                        "H6", "H7", "H8", "H9", "H10"),
-                    values=c(rep("grey", 3), scales::hue_pal()(10))
-                ) +
-                scale_fill_manual(
-                    breaks=c("H1", "H2", "H3", "H4", "H5",
-                        "H6", "H7", "H8", "H9", "H10"),
-                    values=c(rep("grey", 3), scales::hue_pal()(10))
-                ) +
-                guides(colour=guide_legend(ncol=2))
-        }
-        w <- 3.5
-    } else {
-        if (version == "v1") {
-            ggp <- ggp +
-                scale_colour_manual(
-                    breaks=c("F1", "F2", "F3", "F4"),
-                    values=c(scales::hue_pal()(4), rep("grey", 10))
-                ) +
-                scale_fill_manual(
-                    breaks=c("F1", "F2", "F3", "F4"),
-                    values=c(scales::hue_pal()(4), rep("grey", 10))
-                )
-        } else if (version == "v2") {
-            ggp <- ggp +
-                scale_colour_manual(
-                    breaks=c("F1", "F2", "F3"),
-                    values=c(scales::hue_pal()(3), rep("grey", 10))
-                ) +
-                scale_fill_manual(
-                    breaks=c("F1", "F2", "F3"),
-                    values=c(scales::hue_pal()(3), rep("grey", 10))
-                )
-        }
-        w <- 2.75
-    }
-    fp <- "~/projects/fap-lgr5/"
-    fn <- paste0("fap_lgr5_count_dot2_", substr(group, 1, 1), version, ".pdf")
-    ggsave(paste0(fp, fn), ggp, device="pdf", height=3, width=w, unit="in")
-    cat("plot saved to", paste0(fp, fn), "\n")
-    return(ggp)
+        ggp_theme_dotcolour
+    leg <- make_dot_legend(df, group, df$Subject_ID)
+    cwp <- cowplot::plot_grid(
+        ggp, leg, ncol=2, labels=c(NULL, NULL), rel_widths=c(1, 0.4)
+    )
+    res_dir <- "~/projects/fap-lgr5/res/"
+    target <- paste0(res_dir, "subject_dot_", substr(group, 1, 1), ".pdf")
+    pdf(target, height=3, width=3.25)
+    print(cwp)
+    dev.off()
+    cat("plot saved to", target, "\n")
+    return(cwp)
 }
 
 
