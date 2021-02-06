@@ -367,10 +367,14 @@ make_ggp_point_colour <- function(df, group) {
     return(ggp)
 }
 
-## fix border, change subject order
+
 make_ggp_point_sub <- function(df) {
     ## highlight crypts from each subject individually
     levels <- c("Healthy", "Lynch", "FAP")
+    levs_h <- c("H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8", "H9", "H10")
+    levs_l <- c("L1", "L2", "L3", "L4", "L5", "L6", "L7")
+    levs_f <- c("F1", "F2", "F3", "F4")
+    levels2 <- c(levs_h, levs_l, levs_f)
     keep <- c("Diagnosis", "LGR5_Count", "Subject_ID")
     df <- df[ , keep]
     dfs <- list()
@@ -395,8 +399,8 @@ make_ggp_point_sub <- function(df) {
         scale_colour_manual(
             values=c(muted("red"))
         ) +
-        facet_wrap(vars(sid), nrow=6) +
-        ggp_theme_dotcolour + theme(legend.position="none")
+        facet_wrap(vars(factor(sid, levels=levels2)), nrow=6) +
+        ggp_theme_pointsub
     res_dir <- "~/projects/fap-lgr5/res/"
     target <- paste0(res_dir, "subject_point_facet.pdf")
     ggsave(target, ggp, device="pdf", height=10, width=6, unit="in")

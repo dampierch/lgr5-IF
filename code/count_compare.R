@@ -66,7 +66,7 @@ main <- function() {
     ggps$colcryphlt <- make_ggp_point_colour(l$lgr5, "Healthy")
     ggps$colcryplyn <- make_ggp_point_colour(l$lgr5, "Lynch")
     ggps$colcrypfap <- make_ggp_point_colour(l$lgr5, "FAP")
-    ## Highlight Healthy Subjects
+    ## Highlight Crypts for Individual Subjects
     ggps$facsubj <- make_ggp_point_sub(l$lgr5)
 }
 

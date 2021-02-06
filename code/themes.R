@@ -9,7 +9,7 @@ ggp_theme_default <- theme(
     axis.title.x=element_text(size=10, face="plain"),
     axis.title.y=element_text(size=10, face="plain"),
     axis.text.x=element_text(size=10, face="plain"),
-    axis.text.y=element_text(size=9, face="plain"),
+    axis.text.y=element_text(size=10, face="plain"),
     axis.line.x.bottom=element_line(),
     axis.line.y.left=element_line(),
     legend.key=element_rect(fill="white"),
@@ -41,3 +41,15 @@ ggp_theme_dotcolour <- ggp_theme_default + theme(
     legend.spacing.x=unit(0.001, "cm"),
     legend.spacing.y=unit(0.001, "cm")
 )
+
+
+ggp_theme_pointsub <- ggp_theme_default +
+    theme(
+        panel.border=element_rect(colour="black", size=1.0, fill=NA),
+        plot.margin=margin(t=0.5, r=0.5, b=0.5, l=0.5, unit="lines"),
+        axis.text.x=element_text(size=10, face="plain", angle=45, hjust=1),
+        strip.text=element_text(colour="white"),
+        axis.line.x.bottom=element_blank(),
+        axis.line.y.left=element_blank(),
+        legend.position="none"
+    )
