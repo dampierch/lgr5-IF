@@ -1,142 +1,4 @@
-interobs_lm_eqn <- function(df) {
-    m <- lm(y ~ x, df)
-    eq <- substitute(
-        italic(y) == a + b * italic(x) * "," ~~ italic(R)^2 == r2,
-        list(
-            a=format(unname(coef(m)[1]), digits=1),
-            b=format(unname(coef(m)[2]), digits=2),
-            r2=format(summary(m)$r.squared, digits=2)
-        )
-    )
-    return(as.character(as.expression(eq)))
-}
-
-
-interobs_xbar_s <- function(df) {
-    xbars <- substitute(
-        italic(bar(x)) == a * "," ~~ italic(s) == b,
-        list(
-            a=format(mean(df$delta), digits=2),
-            b=format(sd(df$delta), digits=2)
-        )
-    )
-    return(as.character(as.expression(xbars)))
-}
-
-
-interobs_scatter <- function(df, observers) {
-    ## figure works well as 3 in x 3 in
-    ggp_xlab <- paste("Counts by Observer", observers[1])
-    ggp_ylab <- paste("Counts by Observer", observers[2])
-    ann_xval <- (max(df$x) - min(df$x)) / 2
-    ann_yval <- max(df$y) * 0.95
-    ggp <- ggplot(df, aes(x=x, y=y)) +
-        geom_abline(intercept=0, slope=1, size=0.2, linetype="dashed") +
-        geom_point(
-            position=position_jitter(width=0.1, height=0.1),
-            size=0.4, alpha=0.5
-        ) +
-        geom_smooth(method="lm", se=FALSE, color=muted("red"), size=0.8) +
-        annotate(
-            "text", x=ann_xval, y=ann_yval, label=interobs_lm_eqn(df),
-            size=3, parse=TRUE
-        ) +
-        labs(x=ggp_xlab, y=ggp_ylab) +
-        ggp_theme_default
-    return(ggp)
-}
-
-
-interobs_blandaltman <- function(df, observers) {
-    ## figure works well as 3 in x 3 in
-    ggp_xlab <- paste(
-        "Mean of Counts by Observers",
-        paste(observers, collapse=", ")
-    )
-    ggp_ylab <- paste("Counts by Observer", paste(observers, collapse=" - "))
-    ann_xval <- (max(df$mean) - min(df$mean)) / 2
-    ann_yval <- 2.25
-    ggp <- ggplot(df, aes(x=mean, y=delta)) +
-        geom_point(
-            position=position_jitter(width=0.1, height=0.05),
-            size=0.4, alpha=0.5
-        ) +
-        geom_abline(
-            intercept=mean(df$delta), slope=0, color=muted("red"), size=0.8
-        ) +
-        geom_abline(
-            intercept=mean(df$delta) + 1.96 * sd(df$delta), slope=0, size=0.25,
-            linetype="dashed"
-        ) +
-        geom_abline(
-            intercept=mean(df$delta) - 1.96 * sd(df$delta), slope=0, size=0.25,
-            linetype="dashed"
-        ) +
-        annotate(
-            "text", x=ann_xval, y=ann_yval, label=interobs_xbar_s(df),
-            size=3, parse=TRUE
-        ) +
-        labs(x=ggp_xlab, y=ggp_ylab) +
-        scale_y_continuous(limits=c(-2.5, 2.5)) +
-        ggp_theme_default
-    return(ggp)
-}
-
-
-make_interobs_plots <- function(df, observers) {
-    df$delta <- df$x - df$y
-    df$mean <- (df$x + df$y) / 2
-    pl <- list()
-    pl$scatter <- interobs_scatter(df, observers)
-    pl$blandalt <- interobs_blandaltman(df, observers)
-    return(pl)
-}
-
-
-interobserver_plots <- function(l) {
-    pl <- list()
-
-    observers <- c("A", "B")
-    type <- "LGR5"
-    df <- data.frame(x=l$lgr5$LGR5_Count_A, y=l$lgr5$LGR5_Count_B)
-    lab <- paste(type, paste(observers, collapse=""), sep="_")
-    pl[[lab]] <- make_interobs_plots(df, observers)
-
-    observers <- c("A", "B")
-    type <- "Ectopic"
-    df <- data.frame(x=l$ecto$Ectopic_Count_A, y=l$ecto$Ectopic_Count_B)
-    lab <- paste(type, paste(observers, collapse=""), sep="_")
-    pl[[lab]] <- make_interobs_plots(df, observers)
-
-    return(pl)
-}
-
-
-interobs_write <- function(pl, type) {
-    ## type is LGR5 or Ectopic
-    cwp <- list()
-    pl_scatter <- list(
-        AB=pl[[paste(type, "AB", sep="_")]]$scatter
-    )
-    pl_blandalt <- list(
-        AB=pl[[paste(type, "AB", sep="_")]]$blandalt
-    )
-    cwp$scatter <- cowplot::plot_grid(
-        plotlist=pl_scatter, nrow=1, labels=c(NULL)
-    )
-    cwp$blandalt <- cowplot::plot_grid(
-        plotlist=pl_blandalt, nrow=1, labels=c(NULL)
-    )
-    cwp$full <- cowplot::plot_grid(
-        plotlist=cwp, nrow=2, labels=c("a", "b")
-    )
-    plot_dir <- "~/projects/fap-lgr5/res/"
-    target <- paste0(plot_dir, "interobs_", tolower(type), ".pdf")
-    pdf(target, height=6, width=3)
-    print(cwp$full)
-    dev.off()
-    cat("plot written to", target, "\n")
-}
+## source from count_compare.R
 
 
 make_ggp_age_predict <- function(df, fit) {
@@ -177,7 +39,7 @@ make_ggp_dot <- function(df) {
             geom="pointrange", colour="black", fill="black", shape=23,
             size=0.8
         ) +
-        labs(title="LGR5+ Cell Count", x=element_blank()) +
+        labs(x=element_blank()) +
         geom_segment(aes(x=x1, xend=x2, y=y, yend=y), data=dfseg1) +
         geom_segment(aes(x=x1, xend=x2, y=y, yend=y), data=dfseg2) +
         annotate("text", x=2, y=ymax + 0.1, label="*", size=5) +
@@ -214,32 +76,32 @@ make_dot_legend <- function(df, group, levels) {
             scale_colour_manual(
                 breaks=c("H1", "H2", "H3", "H4", "H5",
                     "H6", "H7", "H8", "H9", "H10"),
-                values=c(scales::hue_pal()(10), rep("grey", 7), rep("grey", 4))
+                values=c(scales::hue_pal()(10), rep("grey", 6), rep("grey", 4))
             ) +
             scale_fill_manual(
                 breaks=c("H1", "H2", "H3", "H4", "H5",
                     "H6", "H7", "H8", "H9", "H10"),
-                values=c(scales::hue_pal()(10), rep("grey", 7), rep("grey", 4))
+                values=c(scales::hue_pal()(10), rep("grey", 6), rep("grey", 4))
             )
     } else if (group == "Lynch") {
         ggp <- ggp +
             scale_colour_manual(
-                breaks=c("L1", "L2", "L3", "L4", "L5", "L6", "L7"),
-                values=c(rep("grey", 10), scales::hue_pal()(7), rep("grey", 4))
+                breaks=c("L1", "L2", "L3", "L5", "L6", "L7"),
+                values=c(rep("grey", 10), scales::hue_pal()(6), rep("grey", 4))
             ) +
             scale_fill_manual(
-                breaks=c("L1", "L2", "L3", "L4", "L5", "L6", "L7"),
-                values=c(rep("grey", 10), scales::hue_pal()(7), rep("grey", 4))
+                breaks=c("L1", "L2", "L3", "L5", "L6", "L7"),
+                values=c(rep("grey", 10), scales::hue_pal()(6), rep("grey", 4))
             )
     } else {
         ggp <- ggp +
             scale_colour_manual(
                 breaks=c("F1", "F2", "F3", "F4"),
-                values=c(rep("grey", 10), rep("grey", 7), scales::hue_pal()(4))
+                values=c(rep("grey", 10), rep("grey", 6), scales::hue_pal()(4))
             ) +
             scale_fill_manual(
                 breaks=c("F1", "F2", "F3", "F4"),
-                values=c(rep("grey", 10), rep("grey", 7), scales::hue_pal()(4))
+                values=c(rep("grey", 10), rep("grey", 6), scales::hue_pal()(4))
             )
     }
     leg <- cowplot::get_legend(ggp)
@@ -254,11 +116,11 @@ make_ggp_dot_colour <- function(df, group) {
     levels <- c("Healthy", "Lynch", "FAP")
     df <- df[with(df, order(factor(Diagnosis, levels=levels), LGR5_Mean)), ]
     if (group == "Healthy") {
-        df$colour <- c(scales::hue_pal()(10), rep("grey", 7), rep("grey", 4))
+        df$colour <- c(scales::hue_pal()(10), rep("grey", 6), rep("grey", 4))
     } else if (group == "Lynch") {
-        df$colour <- c(rep("grey", 10), scales::hue_pal()(7), rep("grey", 4))
+        df$colour <- c(rep("grey", 10), scales::hue_pal()(6), rep("grey", 4))
     } else {
-        df$colour <- c(rep("grey", 10), rep("grey", 7), scales::hue_pal()(4))
+        df$colour <- c(rep("grey", 10), rep("grey", 6), scales::hue_pal()(4))
     }
     ggp <- ggplot(df, aes(x=factor(Diagnosis, levels=levels), y=LGR5_Mean)) +
         geom_dotplot(
@@ -271,7 +133,7 @@ make_ggp_dot_colour <- function(df, group) {
             geom="pointrange", colour="black", fill="black", shape=23,
             size=0.8
         ) +
-        labs(title="LGR5+ Cell Count", x=element_blank()) +
+        labs(x=element_blank()) +
         scale_y_continuous(
             name="Mean Count Per Subject",
             breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
@@ -301,7 +163,7 @@ make_ggp_point <- function(df) {
         geom_point(
             size=1.25, shape=16, alpha=0.5, position=position_jitter(width=0.2)
         ) +
-        labs(title="LGR5+ Cell Count", x=element_blank()) +
+        labs(x=element_blank()) +
         geom_segment(aes(x=x1, xend=x2, y=y, yend=y), data=dfseg1) +
         geom_segment(aes(x=x1, xend=x2, y=y, yend=y), data=dfseg2) +
         annotate("text", x=2, y=ymax + 0.1, label="*", size=5) +
@@ -332,9 +194,9 @@ make_ggp_point_colour <- function(df, group) {
         geom_boxplot(outlier.size=-1, width=0.5) +
         geom_point(
             aes(colour=Label), size=1, position=position_jitter(width=0.2),
-            alpha=0.75
+            alpha=0.9
         ) +
-        labs(title="LGR5+ Cell Count", x=element_blank()) +
+        labs(x=element_blank()) +
         scale_y_continuous(
             name="Count Per Crypt", breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
         ) +
@@ -350,14 +212,14 @@ make_ggp_point_colour <- function(df, group) {
     } else if (group == "Lynch") {
         ggp <- ggp +
             scale_colour_manual(
-                breaks=c("L1", "L2", "L3", "L4", "L5", "L6", "L7"),
-                values=c(scales::hue_pal()(7), "grey")
+                breaks=c("L1", "L2", "L3", "L5", "L6", "L7"),
+                values=c(scales::hue_pal()(6), "grey")
             )
     } else {
         ggp <- ggp +
             scale_colour_manual(
                 breaks=c("F1", "F2", "F3", "F4"),
-                values=c(scales::hue_pal()(4), "grey")
+                values=c(rev(scales::hue_pal()(4)), "grey")
             )
     }
     res_dir <- "~/projects/fap-lgr5/res/"
@@ -372,7 +234,7 @@ make_ggp_point_sub <- function(df) {
     ## highlight crypts from each subject individually
     levels <- c("Healthy", "Lynch", "FAP")
     levs_h <- c("H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8", "H9", "H10")
-    levs_l <- c("L1", "L2", "L3", "L4", "L5", "L6", "L7")
+    levs_l <- c("L1", "L2", "L3", "L5", "L6", "L7")
     levs_f <- c("F1", "F2", "F3", "F4")
     levels2 <- c(levs_h, levs_l, levs_f)
     keep <- c("Diagnosis", "LGR5_Count", "Subject_ID")
@@ -392,18 +254,43 @@ make_ggp_point_sub <- function(df) {
             aes(colour=lab), size=1, position=position_jitter(width=0.2),
             alpha=0.75
         ) +
-        labs(title="LGR5+ Cells", x=element_blank()) +
+        labs(title="LGR5+ Cell Count", x=element_blank()) +
         scale_y_continuous(
-            name="Count", breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
+            name="Count Per Crypt", breaks=seq(0, 9, 2), labels=seq(0, 9, 2)
         ) +
         scale_colour_manual(
             values=c(muted("red"))
         ) +
-        facet_wrap(vars(factor(sid, levels=levels2)), nrow=6) +
+        facet_wrap(vars(factor(sid, levels=levels2)), nrow=5) +
         ggp_theme_pointsub
     res_dir <- "~/projects/fap-lgr5/res/"
     target <- paste0(res_dir, "subject_point_facet.pdf")
     ggsave(target, ggp, device="pdf", height=10, width=6, unit="in")
     cat("plot saved to", target, "\n")
     return(ggp)
+}
+
+
+make_main_fig3 <- function(ggps) {
+    dots <- list(hlt=ggps$colsubjhlt, lyn=ggps$colsubjlyn, fap=ggps$colsubjfap)
+    pnts <- list(hlt=ggps$colcryphlt, lyn=ggps$colcryplyn, fap=ggps$colcrypfap)
+    pl <- list(
+        ad=cowplot::plot_grid(
+            ggps$mainsubj, NULL, ggps$age, nrow=1, labels=c("a", "", "d"),
+            rel_widths=c(1, 0.5, 1), scale=c(1, 1, 0.8)
+        ),
+        b=cowplot::plot_grid(plotlist=dots, nrow=1, labels=NULL),
+        c=cowplot::plot_grid(plotlist=pnts, nrow=1, labels=NULL)
+    )
+    cwp <- cowplot::plot_grid(
+        plotlist=pl, nrow=3, labels=c("", "b", "c"),
+        rel_heights=c(1, 0.8, 0.8)
+    )
+    res_dir <- "~/projects/fap-lgr5/res/"
+    target <- paste0(res_dir, "main_fig3.pdf")
+    pdf(target, height=10, width=10)
+    print(cwp)
+    dev.off()
+    cat("plot saved to", target, "\n")
+    return(cwp)
 }

@@ -13,8 +13,9 @@ library(scales) ## for muted colors
 
 source("util.R")
 source("themes.R")
-source("figs.R")
+source("interobs.R")
 source("gee.R")
+source("figs.R")
 
 
 main <- function() {
@@ -30,30 +31,29 @@ main <- function() {
     interobs_write(pl, "Ectopic")
 
     ## Test Predictors of LGR5+ Cell Number
-    fits <- list()
     ## Predictor: Side, Group: Healthy
-    fits$side <- fit_gee_side(l$lgr5, "LGR5")
+    fits <- list(side=fit_gee_side(l$lgr5, "LGR5"))
     ## Predictor: Age, Group: Healthy
     fits$age <- fit_gee_age(l$lgr5, "LGR5")
     ## Predictor: Diagnosis, Group: All
     fits$diagttl <- fit_gee_diagnosis(l$lgr5, "LGR5")
-    fits$diagect <- fit_gee_diagnosis(l$ecto, "Ectopic")
+    fits$diagect <- fit_gee_diagnosis(l$ectopic, "Ectopic")
     ## Predictor: Diagnosis and Age, Group: All, Healthy As Baseline
     fits$diagagettl <- fit_gee_diag_age(l$lgr5, "LGR5")
-    fits$diagageect <- fit_gee_diag_age(l$ecto, "Ectopic")
+    fits$diagageect <- fit_gee_diag_age(l$ectopic, "Ectopic")
     ## Predictor: Diagnosis and Age, Group: All, Lynch As Baseline
     ss <- c("Lynch", "Healthy", "FAP")
     fits$diagagettllyn <- fit_gee_diag_age(l$lgr5, "LGR5", subset=ss)
-    ## Check Residuals
+    ## Check Fit and Residuals
     for (f in names(fits)) {
+        print(summary(fits[[f]]))
         check_residuals(fits[[f]], f)
     }
 
     ## Make Figures
-    ggps <- list()
     ## Highlight Effect of Age
     # fit <- fit_gee_age(l$lgr5, "LGR5", subset=c("Healthy", "Lynch"))
-    ggps$age <- make_ggp_age_predict(l$sumttl, fits$age)
+    ggps <- list(age=make_ggp_age_predict(l$sumttl, fits$age))
     ## Show Main Effect per Subject
     ggps$mainsubj <- make_ggp_dot(l$sumttl)
     ## Show Main Effect per Crypt
@@ -68,7 +68,9 @@ main <- function() {
     ggps$colcrypfap <- make_ggp_point_colour(l$lgr5, "FAP")
     ## Highlight Crypts for Individual Subjects
     ggps$facsubj <- make_ggp_point_sub(l$lgr5)
+    ## Main Figure 3
+    ggps$main3 <- make_main_fig3(ggps)
 }
 
 
-#main()
+main()

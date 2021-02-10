@@ -1,3 +1,6 @@
+## source from count_compare.R
+
+
 ggp_theme_default <- theme(
     panel.background=element_rect(fill="white"),
     panel.grid.major=element_line(color="white"),
@@ -13,7 +16,7 @@ ggp_theme_default <- theme(
     axis.line.x.bottom=element_line(),
     axis.line.y.left=element_line(),
     legend.key=element_rect(fill="white"),
-    legend.position="top",
+    legend.position="none",
     legend.title=element_blank(),
     legend.text=element_text(size=10),
     strip.background=element_rect(fill="black"),
