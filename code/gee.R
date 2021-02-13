@@ -75,24 +75,56 @@ fit_gee_diagnosis <- function(df, type, subset=c("Healthy", "Lynch", "FAP")) {
 }
 
 
-fit_gee_diag_age <- function(df, type, subset=c("Healthy", "Lynch", "FAP")) {
+fit_gee_diag_age <- function(df, type, obs=NULL, subset=c("Healthy", "Lynch", "FAP")) {
     df <- subset(df, Diagnosis %in% subset)
     df <- df[order(df$Subject_ID), ]
     levels <- subset
     if (type == "LGR5") {
-        fit <- geepack::geeglm(
-            LGR5_Count ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
-            family=gaussian(),
-            data=df, id=factor(Subject_ID),
-            zcor=NULL, corstr="exchangeable", std.err="san.se"
-        )
+        if (!is.null(obs) && obs == "A") {
+            fit <- geepack::geeglm(
+                LGR5_Count_A ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
+                family=gaussian(),
+                data=df, id=factor(Subject_ID),
+                zcor=NULL, corstr="exchangeable", std.err="san.se"
+            )
+        } else if (!is.null(obs) && obs == "B") {
+            fit <- geepack::geeglm(
+                LGR5_Count_B ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
+                family=gaussian(),
+                data=df, id=factor(Subject_ID),
+                zcor=NULL, corstr="exchangeable", std.err="san.se"
+            )
+        } else {
+            fit <- geepack::geeglm(
+                LGR5_Count ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
+                family=gaussian(),
+                data=df, id=factor(Subject_ID),
+                zcor=NULL, corstr="exchangeable", std.err="san.se"
+            )
+        }
     } else {
-        fit <- geepack::geeglm(
-            Ectopic_Count ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
-            family=gaussian(),
-            data=df, id=factor(Subject_ID),
-            zcor=NULL, corstr="exchangeable", std.err="san.se"
-        )
+        if (!is.null(obs) && obs == "A") {
+            fit <- geepack::geeglm(
+                Ectopic_Count_A ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
+                family=gaussian(),
+                data=df, id=factor(Subject_ID),
+                zcor=NULL, corstr="exchangeable", std.err="san.se"
+            )
+        } else if (!is.null(obs) && obs == "B") {
+            fit <- geepack::geeglm(
+                Ectopic_Count_B ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
+                family=gaussian(),
+                data=df, id=factor(Subject_ID),
+                zcor=NULL, corstr="exchangeable", std.err="san.se"
+            )
+        } else {
+            fit <- geepack::geeglm(
+                Ectopic_Count ~ factor(Diagnosis, levels=levels) + as.numeric(Age),
+                family=gaussian(),
+                data=df, id=factor(Subject_ID),
+                zcor=NULL, corstr="exchangeable", std.err="san.se"
+            )
+        }
     }
     return(fit)
 }

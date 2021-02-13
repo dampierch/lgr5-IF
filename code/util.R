@@ -12,8 +12,6 @@ read_inputs <- function() {
     data$counts_chd <- readr::read_tsv(target)
     target <- paste0(data_dir, "crypt_counts_blind_sjp.tsv")
     data$counts_sjp <- readr::read_tsv(target)
-    target <- paste0(data_dir, "crypt_counts_blind_ltj.tsv")
-    data$counts_ltj <- readr::read_tsv(target)
     return(data)
 }
 
@@ -24,11 +22,6 @@ merge_inputs <- function(data) {
     df <- merge(data$crypts, data$subjects, by="Subject_ID")
     df <- merge(df, data$counts_chd, by=fnames)
     df <- merge(df, data$counts_sjp, by=fnames, suffixes=snames)
-    df <- merge(df, data$counts_ltj, by=fnames)
-    fnames <- c(
-        colnames(df)[1:(ncol(df) - 2)], "LGR5_Count_C", "Ectopic_Count_C"
-    )
-    colnames(df) <- fnames
     return(df)
 }
 
@@ -79,5 +72,7 @@ make_data <- function() {
     dfs$ectopic <- filter_df(dfs$full, "Ectopic")
     dfs$sumttl <- sum_df(dfs$lgr5)
     dfs$sumect <- sum_df(dfs$ectopic)
+    dfs$final <- dfs$ectopic
+    dfs$sumfin <- dfs$sumect
     return(dfs)
 }

@@ -122,21 +122,38 @@ interobserver_plots <- function(l) {
     lab <- paste(type, paste(observers, collapse=""), sep="_")
     pl[[lab]] <- make_interobs_plots(df, observers)
 
-    observers <- c("A", "C")
+    observers <- c("A", "B")
     type <- "LGR5"
     df <- data.frame(
-        x=l$lgr5$LGR5_Count_A, y=l$lgr5$LGR5_Count_C, lab=l$lgr5$Diagnosis
+        x=l$final$LGR5_Count_A, y=l$final$LGR5_Count_B, lab=l$final$Diagnosis
     )
-    lab <- paste(type, paste(observers, collapse=""), sep="_")
+    lab <- paste(type, paste(observers, collapse=""), "final", sep="_")
     pl[[lab]] <- make_interobs_plots(df, observers)
 
-    observers <- c("B", "C")
-    type <- "LGR5"
+    observers <- c("A", "B")
+    type <- "Ectopic"
     df <- data.frame(
-        x=l$lgr5$LGR5_Count_B, y=l$lgr5$LGR5_Count_C, lab=l$lgr5$Diagnosis
+        x=l$final$Ectopic_Count_A, y=l$final$Ectopic_Count_B,
+        lab=l$final$Diagnosis
     )
-    lab <- paste(type, paste(observers, collapse=""), sep="_")
+    lab <- paste(type, paste(observers, collapse=""), "final", sep="_")
     pl[[lab]] <- make_interobs_plots(df, observers)
+
+    # observers <- c("A", "C")
+    # type <- "LGR5"
+    # df <- data.frame(
+    #     x=l$lgr5$LGR5_Count_A, y=l$lgr5$LGR5_Count_C, lab=l$lgr5$Diagnosis
+    # )
+    # lab <- paste(type, paste(observers, collapse=""), sep="_")
+    # pl[[lab]] <- make_interobs_plots(df, observers)
+    #
+    # observers <- c("B", "C")
+    # type <- "LGR5"
+    # df <- data.frame(
+    #     x=l$lgr5$LGR5_Count_B, y=l$lgr5$LGR5_Count_C, lab=l$lgr5$Diagnosis
+    # )
+    # lab <- paste(type, paste(observers, collapse=""), sep="_")
+    # pl[[lab]] <- make_interobs_plots(df, observers)
 
     return(pl)
 }
@@ -172,6 +189,37 @@ interobs_write <- function(pl, type) {
     plot_dir <- "~/projects/fap-lgr5/res/"
     target <- paste0(plot_dir, "interobs_", tolower(type), ".pdf")
     pdf(target, height=6, width=wd)
+    print(cwp$full)
+    dev.off()
+    cat("plot written to", target, "\n")
+}
+
+
+interobs_supp_fig <- function(pl) {
+    ## type is LGR5 or Ectopic
+    cwp <- list()
+    ht <- 6
+    wd <- 6
+    pl_scatter <- list(
+        lgr5=pl[["LGR5_AB_final"]]$scatter,
+        ectopic=pl[["Ectopic_AB_final"]]$scatter
+    )
+    pl_blandalt <- list(
+        lgr5=pl[["LGR5_AB_final"]]$blandalt,
+        ectopic=pl[["Ectopic_AB_final"]]$blandalt
+    )
+    cwp$scatter <- cowplot::plot_grid(
+        plotlist=pl_scatter, nrow=1, labels=c("a", "c")
+    )
+    cwp$blandalt <- cowplot::plot_grid(
+        plotlist=pl_blandalt, nrow=1, labels=c("b", "d")
+    )
+    cwp$full <- cowplot::plot_grid(
+        plotlist=cwp, nrow=2, labels=c(NULL)
+    )
+    plot_dir <- "~/projects/fap-lgr5/res/"
+    target <- paste0(plot_dir, "interobs_supp_fig.pdf")
+    pdf(target, height=ht, width=wd)
     print(cwp$full)
     dev.off()
     cat("plot written to", target, "\n")
